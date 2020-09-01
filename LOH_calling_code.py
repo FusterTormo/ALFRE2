@@ -134,11 +134,16 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     gene2variant = {}
     somatic_variant = {}
     ### collecting germline variants (all possible PASS variants)
+     """
+    # Input files' format #
+        VCF file and ANNOVAR gene_anno information stored in INFO column
+        The variannts from the genes of interest and the surrounding genes are stored in germline_variant dict, and in gene2variant dict  after this loop
+    """
     for line in fgermline.xreadlines():
         line = line.strip()
         field = line.split('\t')
         if '#' in line:
-            if '#CHROM' in line:
+            if '#CHROM' in line: # Read kind of vcf file?? Getting the order of the columns
                 for i in range(len(field)):
                     if field[i] == 'FILTER':
                         filter_index = i
@@ -155,19 +160,17 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
 
             pos_query = field[chr_index+1]
+            # variant format: chr-pos-ref-alt
             variant = '%s-%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3], field[chr_index+4])
+            # UNUSED VARIABLE!!
             variant_index = '%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3])
             PASS_index = field[filter_index]
-
-"""
-CONTINUAR PER ACI. QUE collons passaria si no estigueren les variants anotades amb ANNOVAR
-"""
 
             gene_check = 0
             if PASS_index!= 'PASS':# to collect high-quality variant
                 continue
             gene_annovar = field[info_index].split(';')#Annovar information
-
+            # Extract, from ANNOVAR information, the gene name, the mutation type, the exonic mutation type and the exac MAF reported by ANNOVAR
             for gindex in range(len(gene_annovar)):
                 gene_info = gene_annovar[gindex]
                 gids_info = gene_info.split('=')[0]
@@ -186,11 +189,12 @@ CONTINUAR PER ACI. QUE collons passaria si no estigueren les variants anotades a
                 elif 'exac02' == gids_info:#ExAC MAF information
                     MAF = gene_info.split('=')[1]
 
-            if gene_check == 0:
+            if gene_check == 0: # Boolean to know if the gene is the gene of interest or neighboring gene
                 continue
-            elif variant not in ExAC_PASS[chr_input]:#to collect ExAC_PASS variants
+            elif variant not in ExAC_PASS[chr_input]:#to collect ExAC_PASS variants. If the variant was not in the ExAC database, discard it
                 continue
 
+            # Check if the variant was homozygous or heterozygous
             GQX_info = field[sample_index]
             genotype = GQX_info.split(':')[0]
             if genotype == '1/1':#to remove homozygous variant
@@ -199,15 +203,17 @@ CONTINUAR PER ACI. QUE collons passaria si no estigueren les variants anotades a
                 gene2variant[gene_name] = [variant]
                 germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
-    print germline_variant
-    print gene2variant
-    sys.exit()
+    """
+    # Variables filled after this loop #
+        * germline_variant dict format: { "chr-pos-ref-alt" : geneName\tmutation_type, MAF, exonic_mutation_type, 0/1}
+        * gene2variant dict format : { "gene_name" :  "chr-pos-ref-alt"} NOT USED
+    """
 
     ### mapping germline variants from normal sample to matched somatic variants from tumor sample
     for line in fsomatic.xreadlines():
         line = line.strip()
         field = line.split('\t')
-        if '#' in line:
+        if '#' in line: # Get the indexes of the interesting columns
             if '#CHROM' in line:
                 for i in range(len(field)):
                     if field[i] == '#CHROM':
@@ -216,18 +222,28 @@ CONTINUAR PER ACI. QUE collons passaria si no estigueren les variants anotades a
                         sample_index = i
                     elif field[i] == 'FILTER':
                         filter_index = i
-        else:
+        else:  # Extract the variants information for the vcf body
             chr_input = field[chr_index]
             if chr_input!= chr_query:
                 continue
+            # profile format : chr-pos-ref-alt
             profile = '%s-%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3], field[chr_index+4])
+            # Remove the variants in the gens of interest that are in the germline file
             if profile in germline_variant.keys():
                 somatic_GQX_info = field[sample_index]
                 PASS_index = field[filter_index]
                 somatic_variant[profile] = ['%s\t%s'%(PASS_index, somatic_GQX_info)]
 
+    ############################################################
+    # Up to here we have:
+    # * ExAC_PASS -> List with all the SNPs from ExAC, in the chromosome passed as parameter, that passed all the filters
+    # * gene2locus -> Dict with the name of the gene as key, followed by lists with the lengths, start positions, end positions, and chromosome
+    # * gene_query_total -> List of genes of interested passed as parameter plus the genes that are closer to them
+    # * germline_variant -> Dict with the variants of interest from the germline vcf. Dict format specified in line 208
+    # * somatic_variant -> Dict with the variants of interest from the Somatic vcf. Dict format in line 208
+    #############################################################
     gene_info = {}
-    for ids in gene_query:
+    for ids in gene_query: # gene_query is the list of genes passed as parameter to the function
         gene_info[ids] = [[]]
 
     for ids in germline_variant.keys():
