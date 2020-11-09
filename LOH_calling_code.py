@@ -21,31 +21,55 @@ import pvalue_combine
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
 neighbor_genes = "input_files/UCSC-2014-10-30_hg19_refGene.txt"
 
+def extractPASS(chr_query) :
+    """Get variants in gNOMAD/ExAC (or similar) that passed all the filters
+
+    Parameters
+    ----------
+        chr_query : str
+            Chromosome number where the user needs to extract the PASS variants
+
+    Returns
+    -------
+        dict
+            Dictionary with the variants that have passed the filters in the population database (column FILTER = PASS)
+            Dictionary format: {"chr_number" : ["chr-position-start-end", ...], ...}
+    """
+    ExAC_PASS = {}
+    ExAC_PASS[chr_query] = []
+    print("INFO: Reading ExAC input data")
+    with open(exac_input, "r") as fi :
+        for line in fi:
+            line = line.strip()
+            field = line.split('\t')
+            # Don't read the vcf header
+            if '##' in line:
+                continue
+            elif '#CHROM' in line:
+                for i in range(len(field)): # Find the column number that corresponds to the FILTER column
+                    if field[i] == 'FILTER':
+                        PASS_index = i
+            else:
+                chr_input = field[0]
+                if chr_input != chr_query:
+                    continue
+                PASS_query = field[PASS_index]
+                if PASS_query == 'PASS':
+                    variant_query = "{chr}-{pos}-{ref}-{alt}".format(chr = field[0], pos = field[1], ref = field[3], alt = field[4]) # Format (chromosome-position-reference-alterated)
+                    ExAC_PASS[chr_input].append(variant_query)
+
+    print len(ExAC_PASS[chr_query]), 'ExAC PASS', chr_query
+
+    return ExAC_PASS
+
+
+
+
+
 def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
 
     #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
-    # ExAC_PASS = {}
-    # ExAC_PASS[chr_query] = []
-    # fexac = open(exac_input,'r')
-    # print("INFO: Reading ExAC input data")
-    # for line in fexac.xreadlines():
-    #     line = line.strip()
-    #     field = line.split('\t')
-    #     if '##' in line:
-    #         continue
-    #     elif '#CHROM' in line:
-    #         for i in range(len(field)):
-    #             if field[i] == 'FILTER':
-    #                 PASS_index = i
-    #     else:
-    #         chr_input = field[0]
-    #         if chr_input!= chr_query:
-    #             continue
-    #         PASS_query = field[PASS_index]
-    #         if PASS_query == 'PASS':
-    #             variant_query = '%s-%s-%s-%s'%(field[0], field[1], field[3], field[4]) # Format (chromosome-position-reference-alterated)
-    #             ExAC_PASS[chr_input].append(variant_query)
-    # print len(ExAC_PASS[chr_query]), 'ExAC PASS', chr_query
+
 
     #### step 2: neighboring gene
     # Get the information of all the genes in file. Stores the information in format
@@ -335,13 +359,22 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     print fout
     return 'LOH detection'
 
+# Unit tests for all the functions
+test = extractPASS('17')
+print(test.keys())
+for k, v in test.items() :
+    print(k)
+    print(v)
+
+
 #################################################
 
+# TODO uncomment this to do the tests
 # First dummy example
 
-germline_sample = 'input_files/normal_ex2.vcf'
-somatic_sample = 'input_files/tumor_ex2.vcf'
-gene_query = ['BRCA1']
-chr_query = '17'
-
-print germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample, chr_query, gene_query)
+# germline_sample = 'input_files/normal_ex2.vcf'
+# somatic_sample = 'input_files/tumor_ex2.vcf'
+# gene_query = ['BRCA1']
+# chr_query = '17'
+#
+# print germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample, chr_query, gene_query)
