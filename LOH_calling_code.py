@@ -58,44 +58,55 @@ def extractPASS(chr_query) :
                     variant_query = "{chr}-{pos}-{ref}-{alt}".format(chr = field[0], pos = field[1], ref = field[3], alt = field[4]) # Format (chromosome-position-reference-alterated)
                     ExAC_PASS[chr_input].append(variant_query)
 
-    print len(ExAC_PASS[chr_query]), 'ExAC PASS', chr_query
+    if len(ExAC_PASS[chr_query]) == 0 :
+        print("WARNING: No population variants found. Please check the input")
 
     return ExAC_PASS
 
+def extractGenes() :
+    """Get the length, start, end and chromosome from all the genes
 
+    Returns
+    -------
+        dict
+            Dictionary with all mentioned information in format
+            {gene_name : [[length1, length2, ...], [start1, start2, ...], [end1, end2, ...], [chromosome1, chromosome2, ...]]}
+    """
+    print("INFO: Extracting the gene information")
+    gene2locus = {}
+    with open(neighbor_genes,'r') as fi :
+        for line in fi :
+            line = line.strip()
+            field = line.split('\t')
+            gene_name = field[12]
+            start_pos = int(field[4])
+            end_pos = int(field[5])
+            length = end_pos - start_pos
+            chr_info = field[2].replace("chr", "")
+
+            if gene_name not in gene2locus.keys():
+                gene2locus[gene_name] = [[],[],[],[]]
+                gene2locus[gene_name][0].append(length)
+                gene2locus[gene_name][1].append(start_pos)
+                gene2locus[gene_name][2].append(end_pos)
+                gene2locus[gene_name][3].append(chr_info)
+            else:
+                gene2locus[gene_name][0].append(length)
+                gene2locus[gene_name][1].append(start_pos)
+                gene2locus[gene_name][2].append(end_pos)
+
+    return gene2locus
 
 
 
 def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+    query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 
     #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
-
+    # ExAC_PASS = extractPASS(chr_query)
 
     #### step 2: neighboring gene
-    # Get the information of all the genes in file. Stores the information in format
-    # { "gene_name" : [[list_lengths], [list_start_positions], [list_end_positions], [chromsome]]}
-    query_KB = 50*1000#to define neighboring variants. The definition of neighboring variants can be changed.
-    flocus = open(neighbor_genes,'r')
-    gene2locus = {}
-    for line in flocus.xreadlines():
-        line = line.strip()
-        field = line.split('\t')
-        gene_name = field[12]
-        start_pos = int(field[4])
-        end_pos = int(field[5])
-        length = end_pos - start_pos
-        chr_info = field[2].replace("chr", "")
-
-        if gene_name not in gene2locus.keys():
-            gene2locus[gene_name] = [[],[],[],[]]
-            gene2locus[gene_name][0].append(length)
-            gene2locus[gene_name][1].append(start_pos)
-            gene2locus[gene_name][2].append(end_pos)
-            gene2locus[gene_name][3].append(chr_info)
-        else:
-            gene2locus[gene_name][0].append(length)
-            gene2locus[gene_name][1].append(start_pos)
-            gene2locus[gene_name][2].append(end_pos)
+    gene2locus = extractGenes()
 
 
     ### Finding neighboring genes
@@ -158,7 +169,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     gene2variant = {}
     somatic_variant = {}
     ### collecting germline variants (all possible PASS variants)
-     """
+    """
     # Input files' format #
         VCF file and ANNOVAR gene_anno information stored in INFO column
         The variannts from the genes of interest and the surrounding genes are stored in germline_variant dict, and in gene2variant dict  after this loop
@@ -360,11 +371,9 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     return 'LOH detection'
 
 # Unit tests for all the functions
-test = extractPASS('17')
-print(test.keys())
-for k, v in test.items() :
-    print(k)
-    print(v)
+# test = extractPASS('17')
+test2 = extractGenes()
+print(test2.keys())
 
 
 #################################################
