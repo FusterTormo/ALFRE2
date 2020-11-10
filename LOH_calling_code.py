@@ -20,6 +20,7 @@ import pvalue_combine
 # Constants
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
 neighbor_genes = "input_files/UCSC-2014-10-30_hg19_refGene.txt"
+query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 
 def extractPASS(chr_query) :
     """Get variants in gNOMAD/ExAC (or similar) that passed all the filters
@@ -97,24 +98,13 @@ def extractGenes() :
 
     return gene2locus
 
-
-
-def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
-    query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
-
-    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
-    # ExAC_PASS = extractPASS(chr_query)
-
-    #### step 2: neighboring gene
-    gene2locus = extractGenes()
-
-
-    ### Finding neighboring genes
+def unknown(gene_query, gene2locus) :
     gene2degree = {}
     degree2gene = {}
     gene_query_total = set([]) #A set is an unordered collection of items. Every set element is unique (no duplicates) and must be cannot be changed
 
-    for gids in gene_query: # gene_query has the gene ids the user is interested for
+    # gene_query has the gene ids the user is interested for
+    for gids in gene_query:
         gene2degree[gids] = []
         gene_query_total.add(gids)
 
@@ -126,9 +116,9 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
         possible_start = center_query - query_KB
         possible_end = center_query + query_KB
 
-        for gene_cand in gene2locus.keys():
+        for gene_cand in gene2locus.keys() :
             chr_cand = gene2locus[gene_cand][3][0]
-            if chr_input!= chr_cand:
+            if chr_input!= chr_cand: # TODO: Canviar este if
                 continue
             elif gene_cand == gids:
                 continue
@@ -137,7 +127,14 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
             start_cand = numpy.min(gene2locus[gene_cand][1])
             end_cand = numpy.max(gene2locus[gene_cand][2])
 
-            if end_cand > possible_start and end_cand < possible_end:
+            if end_cand > possible_start and end_cand < possible_end :
+                gene2degree[gids].append(gene_cand)
+                gene_query_total.add(gene_cand)
+                if gene_cand in degree2gene.keys():
+                    degree2gene[gene_cand].append(gids)
+                else:
+                    degree2gene[gene_cand] = [gids]
+            elif start_cand < possible_end and start_cand > possible_start :
                 gene2degree[gids].append(gene_cand)
                 gene_query_total.add(gene_cand)
                 if gene_cand in degree2gene.keys():
@@ -145,13 +142,20 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
                 else:
                     degree2gene[gene_cand] = [gids]
 
-            elif start_cand < possible_end and start_cand > possible_start:
-                gene2degree[gids].append(gene_cand)
-                gene_query_total.add(gene_cand)
-                if gene_cand in degree2gene.keys():
-                    degree2gene[gene_cand].append(gids)
-                else:
-                    degree2gene[gene_cand] = [gids]
+    print(gene_query_total)
+
+
+def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+
+    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
+    # ExAC_PASS = extractPASS(chr_query)
+
+    #### step 2: neighboring gene
+    gene2locus = extractGenes()
+
+
+    ### Finding neighboring genes
+
 
     # print gene_query, 'gene_input_query'
     # print gene_query_total, 'gene_neighboring_query'
@@ -373,7 +377,8 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 # Unit tests for all the functions
 # test = extractPASS('17')
 test2 = extractGenes()
-print(test2.keys())
+gene_query = ['BRCA1']
+unknown(gene_query, test2)
 
 
 #################################################
