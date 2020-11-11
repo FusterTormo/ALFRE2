@@ -170,6 +170,7 @@ def convert2dict(line, header) :
     it = 0
     for h in header :
         if h == "Otherinfo" :
+            continue
             dc["vcf_chrom"] = field[it]
             dc["vcf_pos"] = field[it+1]
             dc["vcf_id"] = field[it+2]
@@ -188,14 +189,14 @@ def convert2dict(line, header) :
             dc[h] = field[it]
             it += 1
 
-    print(len(header))
-    print(len(header_format))
-    print(len(dc.keys()))
     return dc
 
-def readGermline(path) :
+def getHghestMAF(vcf) :
+    return ""
+
+def readGermline(path, chr_query, gene_query_total) :
+    print("INFO: Extracting information from germline file")
     germline_variant = {}
-    gene2variant = {}
 
     ### collecting germline variants (all possible PASS variants)
     """
@@ -209,57 +210,30 @@ def readGermline(path) :
             if len(header) == 0: # Read the header. Extract the column number for each column
                 header = line.strip().split('\t')
             else :
-                dcAux = convert2dict(line)
+                dcAux = convert2dict(line, header)
 
+                chr_input = dcAux["vcf_chrom"]
+                if chr_input == chr_query:
+                    pos_query = dcAux["vcf_pos"]
+                    # variant format: chr-pos-ref-alt
+                    variant = '{chr}-{pos}-{ref}-{alt}'.format(chr = dcAux["vcf_chrom"], pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
+                    PASS_index = dcAux["vcf_filter"]
+                    gene_check = 0
+                    if PASS_index != 'PASS':# to collect high-quality variant
+                    continue
 
-            chr_input = field[chr_index]
-            if chr_input!= chr_query:
-                continue
+                    if dcAux["Gene.refGene"] in gene_query_total : #collect variants of query genes and neighboring genes
+                    gene_name = dcAux["Gene.refGene"]
+                    exon = dcAux["Func.refGene"]
+                    mut_type = dcAux["ExonicFunc.refGene"]
+                    MAF = getHghestMAF(dcAux)
+                    # TODO Es guarda per despres quina informacio guardarem en GQX_info
+                    GQX_info = field[sample_index]
+                    genotype = dcAux["vcf_GT"]
+                    if genotype == '0/1' :
+                        germline_variant[variant] = ["{gene}\t{mutation}\t{maf}\t{exon}\t{GQX}".format(gene = gene_name, mutation = mut_type, maf = MAF, exon = exon, GQX = GQX_info)]
 
-
-            pos_query = field[chr_index+1]
-            # variant format: chr-pos-ref-alt
-            variant = '%s-%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3], field[chr_index+4])
-            # UNUSED VARIABLE!!
-            variant_index = '%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3])
-            PASS_index = field[filter_index]
-
-            gene_check = 0
-            if PASS_index!= 'PASS':# to collect high-quality variant
-                continue
-            gene_annovar = field[info_index].split(';')#Annovar information
-            # Extract, from ANNOVAR information, the gene name, the mutation type, the exonic mutation type and the exac MAF reported by ANNOVAR
-            for gindex in range(len(gene_annovar)):
-                gene_info = gene_annovar[gindex]
-                gids_info = gene_info.split('=')[0]
-                if 'Gene.refGene' == gids_info:
-                    gene_query_list = gene_info.split('=')[1].split(',')
-                    for gids in gene_query_list:
-                        if gids in gene_query_total:#collect variants of query genes and neighboring genes
-                            gene_check = 1
-
-                elif 'Func.refGene' == gids_info:
-                    exon = gene_info.split('=')[1]
-
-                elif 'ExonicFunc.refGene' == gids_info:
-                    mut_type = gene_info.split('=')[1]
-
-                elif 'exac02' == gids_info:#ExAC MAF information
-                    MAF = gene_info.split('=')[1]
-
-            if gene_check == 0: # Boolean to know if the gene is the gene of interest or neighboring gene
-                continue
-            elif variant not in ExAC_PASS[chr_input]:#to collect ExAC_PASS variants. If the variant was not in the ExAC database, discard it
-                continue
-
-            # Check if the variant was homozygous or heterozygous
-            GQX_info = field[sample_index]
-            genotype = GQX_info.split(':')[0]
-            if genotype == '1/1':#to remove homozygous variant
-                continue
-            for gene_name in gene_query_list:
-                gene2variant[gene_name] = [variant]
-                germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
+    return germline_variant
 
 def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
 
@@ -411,19 +385,13 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 chr_query = '17'
 gene_query = ['BRCA1']
 # test = extractPASS('17')
-# gene2locus = extractGenes()
-#
-# gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
+gene2locus = extractGenes()
 
-with open("/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt", "r") as fi :
-    header = []
-    for l in fi :
-        if len(header) <= 0 :
-            header = l.strip().split("\t")
-            print(header)
-        else :
-            print(convert2dict(l, header))
-            break
+gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
+germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
+test2 = readGermline(germline_path, chr_query, gene_query_total)
+print(test2)
+
 
 #################################################
 
