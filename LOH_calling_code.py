@@ -98,7 +98,27 @@ def extractGenes() :
 
     return gene2locus
 
-def unknown(gene_query, gene2locus) :
+def getNeighborGenes(gene_query, gene2locus) :
+    """Finds the gens that are closer than query_KB from the genes of interest
+
+    Gene the closer genes from a list of genes passed as parameter
+
+    Parameters
+    ----------
+        gene_query : list
+            Gene names that the user is interested in finding the neighbors
+        gene2locus : dict
+            Gene list extracted in extractGenes function
+
+    Returns
+    -------
+        gene2degree : dict
+            Genes of interest and the corresponding neighbors in format: { gene_name : [neighbor1, neighbor2, ...]}
+        degree2gene : dict
+            Genes of interest' neighbors in format: {neighbor1 : [gene_of_interest], neighbor2 : [gene_of_interest], ...}
+        gene_query_total : set
+            Unique gene names find that are neighbors of the list of gens passed
+    """
     gene2degree = {}
     degree2gene = {}
     gene_query_total = set([]) #A set is an unordered collection of items. Every set element is unique (no duplicates) and must be cannot be changed
@@ -142,57 +162,52 @@ def unknown(gene_query, gene2locus) :
                 else:
                     degree2gene[gene_cand] = [gids]
 
-    print(gene_query_total)
+    return gene2degree, degree2gene, gene_query_total
+
+def convert2dict(line, header) :
+    field = line.strip().split("\t")
+    dc = {}
+    it = 0
+    for h in header :
+        if h == "Otherinfo" :
+            dc["vcf_chrom"] = field[it]
+            dc["vcf_pos"] = field[it+1]
+            dc["vcf_id"] = field[it+2]
+            dc["vcf_ref"] = field[it+3]
+            dc["vcf_alt"] = field[it+4]
+            dc["vcf_qual"] = field[it+5]
+            dc["vcf_filter"] = field[it+6]
+            dc["vcf_info"] = field[it+7]
+            header_format = field[it+8].split(":")
+            it2 = 0
+            values_format = field[it+9]
+            for h2 in header_format :
+                dc["vcf_{}".format(h2)] = values_format[it2]
+                it2 += 1
+        else :
+            dc[h] = field[it]
+            i += 1
 
 
-def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
-
-    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
-    # ExAC_PASS = extractPASS(chr_query)
-
-    #### step 2: neighboring gene
-    gene2locus = extractGenes()
-
-
-    ### Finding neighboring genes
-
-
-    # print gene_query, 'gene_input_query'
-    # print gene_query_total, 'gene_neighboring_query'
-
-    ############################################################
-    # Up to here we have:
-    # * ExAC_PASS -> List with all the SNPs from ExAC, in the chromosome passed as parameter, that passed all the filters
-    # * gene2locus -> Dict with the name of the gene as key, followed by lists with the lengths, start positions, end positions, and chromosome
-    # * gene_query_total -> List of genes of interested passed as parameter plus the genes that are closer to them
-
-    fgermline = open('%s'%(germline_sample),'r')
-    fsomatic = open('%s'%(somatic_sample), 'r')
-
+def readGermline(path) :
     germline_variant = {}
     gene2variant = {}
-    somatic_variant = {}
+
     ### collecting germline variants (all possible PASS variants)
     """
     # Input files' format #
         VCF file and ANNOVAR gene_anno information stored in INFO column
         The variannts from the genes of interest and the surrounding genes are stored in germline_variant dict, and in gene2variant dict  after this loop
     """
-    for line in fgermline.xreadlines():
-        line = line.strip()
-        field = line.split('\t')
-        if '#' in line:
-            if '#CHROM' in line: # Read kind of vcf file?? Getting the order of the columns
-                for i in range(len(field)):
-                    if field[i] == 'FILTER':
-                        filter_index = i
-                    elif field[i] == 'INFO':
-                        info_index = i
-                    elif field[i] == 'Sample_index':
-                        sample_index = i
-                    elif field[i] == '#CHROM':
-                        chr_index = i
-        else:
+    header = []
+    with open(path, "r") as fi :
+        for line in fi :
+            if len(header) == 0: # Read the header. Extract the column number for each column
+                header = line.strip().split('\t')
+            else :
+                dcAux = convert2dict(line)
+
+
             chr_input = field[chr_index]
             if chr_input!= chr_query:
                 continue
@@ -242,12 +257,26 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
                 gene2variant[gene_name] = [variant]
                 germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
+def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+
+    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
+    # ExAC_PASS = extractPASS(chr_query)
+
+    #### step 2: neighboring gene
+    gene2locus = extractGenes()
+
+    ### Finding neighboring genes
+    gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
+
+
+
     """
     # Variables filled after this loop #
         * germline_variant dict format: { "chr-pos-ref-alt" : geneName\tmutation_type, MAF, exonic_mutation_type, 0/1}
         * gene2variant dict format : { "gene_name" :  "chr-pos-ref-alt"} NOT USED
     """
-
+    fsomatic = open('%s'%(somatic_sample), 'r')
+    somatic_variant = {}
     ### mapping germline variants from normal sample to matched somatic variants from tumor sample
     for line in fsomatic.xreadlines():
         line = line.strip()
@@ -371,15 +400,24 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
         else:
             fout.write('%s\t%s\t%s\n'%(gene_name, 'noLOH', len(gene_LOH[gene_name])))
     fout.close()
-    print fout
+    print(fout)
     return 'LOH detection'
 
 # Unit tests for all the functions
-# test = extractPASS('17')
-test2 = extractGenes()
+chr_query = '17'
 gene_query = ['BRCA1']
-unknown(gene_query, test2)
+# test = extractPASS('17')
+# gene2locus = extractGenes()
+#
+# gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
 
+with open("/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt", "r") as fi :
+    header = []
+    for l in fi :
+        if len(header) <= 0 :
+            header = l.strip().split("\t")
+        else :
+            print(convert2dict(l, header))
 
 #################################################
 
