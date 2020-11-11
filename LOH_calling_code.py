@@ -3,7 +3,7 @@ from string import *
 import math, numpy, scipy, math
 from numpy import array
 from scipy import stats
-import pvalue_combine
+#import pvalue_combine
 
 ##############
 # This code is designed to detect LOH events of interested gene per one cancer patient using two different exome sequencing samples from normal and tumor.
@@ -180,14 +180,15 @@ def convert2dict(line, header) :
             dc["vcf_info"] = field[it+7]
             header_format = field[it+8].split(":")
             it2 = 0
-            values_format = field[it+9]
+            values_format = field[it+9].split(":")
             for h2 in header_format :
                 dc["vcf_{}".format(h2)] = values_format[it2]
                 it2 += 1
         else :
             dc[h] = field[it]
-            i += 1
+            it += 1
 
+    return dc
 
 def readGermline(path) :
     germline_variant = {}
@@ -416,8 +417,10 @@ with open("/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e
     for l in fi :
         if len(header) <= 0 :
             header = l.strip().split("\t")
+            print(header)
         else :
             print(convert2dict(l, header))
+            break
 
 #################################################
 
