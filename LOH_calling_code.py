@@ -188,6 +188,9 @@ def convert2dict(line, header) :
             dc[h] = field[it]
             it += 1
 
+    print(len(header))
+    print(len(header_format))
+    print(len(dc.keys()))
     return dc
 
 def readGermline(path) :
