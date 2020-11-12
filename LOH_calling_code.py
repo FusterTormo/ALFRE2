@@ -204,9 +204,6 @@ def getHghestMAF(vcf) :
 
     if max == -1 :
         max = "NA"
-    else :
-        print(vcf)
-        sys.exit()
 
     return max
 
@@ -270,39 +267,17 @@ def readSomatic(path, chr_query, germline_variant) :
                 chr_input = dcAux["vcf_chrom"]
                 if chr_input == chr_query:
                     # profile format : chr-pos-ref-alt
-                    profile = "{chr}-{pos}-{ref}-{alt}".format(chr = chr_index, pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
+                    profile = "{chr}-{pos}-{ref}-{alt}".format(chr = chr_input, pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
                     # Remove the variants in the gens of interest that are in the germline file
                     if profile in germline_variant.keys():
                         somatic_GQX_info = "{}:{}".format(dcAux["vcf_GT"], dcAux["vcf_AD"])
                         PASS_index = dcAux["vcf_filter"]
-                        somatic_variant[profile] = ["{pass}\t{gqx}".format(PASS_index, somatic_GQX_info)]
+                        somatic_variant[profile] = ["{pas}\t{gqx}".format(pas = PASS_index, gqx = somatic_GQX_info)]
 
     return somatic_variant
 
-def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
-
-    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
-    # ExAC_PASS = extractPASS(chr_query)
-
-    #### step 2: neighboring gene
-    gene2locus = extractGenes()
-
-    ### Finding neighboring genes
-    gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
-
-    germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
-    somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
-
-
-
-    ############################################################
-    # Up to here we have:
-    # * ExAC_PASS -> List with all the SNPs from ExAC, in the chromosome passed as parameter, that passed all the filters
-    # * gene2locus -> Dict with the name of the gene as key, followed by lists with the lengths, start positions, end positions, and chromosome
-    # * gene_query_total -> List of genes of interested passed as parameter plus the genes that are closer to them
-    # * germline_variant -> Dict with the variants of interest from the germline vcf. Dict format specified in line 208
-    # * somatic_variant -> Dict with the variants of interest from the Somatic vcf. Dict format in line 208
-    #############################################################
+def getInterestGenes(gene_query, germline_variant, somatic_variant) :
+    print("INFO: Getting the genes' information")
     gene_info = {}
     for ids in gene_query: # gene_query is the list of genes passed as parameter to the function
         gene_info[ids] = [[]]
@@ -335,7 +310,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
                 continue
 
             fisher_pvalue = stats.fisher_exact([[germline_score1, germline_score2], [somatic_score1, somatic_score2]])[1]
-            variant_info = '%s\t%s\t%s\t%s\t%s\t%s\t%s'%(variant,fisher_pvalue, mut_type, MAF, exon, germline_GQX, somatic_GQX)
+            variant_info = "{var}\t{pvalue}\t{mut}\t{maf}\t{exon}\t{germ}\t{som}".format(var = variant, pvalue = fisher_pvalue, mut = mut_type, maf = MAF, exon = exon, germ = germline_GQX, som = somatic_GQX)
 
             if gene in gene_info.keys():# collecting all possible variants of query gene
                 gene_info[gene][0].append(variant_info)
@@ -355,8 +330,25 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
                     if position >= possible_start and position <= possible_end:
                         gene_info[friend_query][0].append(variant_info)
 
-                    elif position <= possible_end and position >= possible_start:
-                        gene_info[friend_query][0].append(variant_info)
+                    # elif position <= possible_end and position >= possible_start:
+                    #     gene_info[friend_query][0].append(variant_info)
+    return gene_info
+
+def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+
+    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
+    # ExAC_PASS = extractPASS(chr_query)
+
+    #### step 2: neighboring gene
+    gene2locus = extractGenes()
+
+    ### Finding neighboring genes
+    gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
+
+    germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
+    somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
+
+    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
 
     #################################
     effect_size_upper = 0.7 ## cut-off of effect size can be changed.
@@ -407,7 +399,7 @@ somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a
 germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 germline_variant = readGermline(germline_path, chr_query, gene_query_total)
 somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
-
+gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
 
 #################################################
 
