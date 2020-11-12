@@ -211,25 +211,28 @@ def readGermline(path, chr_query, gene_query_total) :
                 header = line.strip().split('\t')
             else :
                 dcAux = convert2dict(line, header)
-
-                chr_input = dcAux["vcf_chrom"]
-                if chr_input == chr_query:
-                    pos_query = dcAux["vcf_pos"]
-                    # variant format: chr-pos-ref-alt
-                    variant = '{chr}-{pos}-{ref}-{alt}'.format(chr = dcAux["vcf_chrom"], pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
-                    PASS_index = dcAux["vcf_filter"]
-                    gene_check = 0
-                    if PASS_index == 'PASS':# to collect high-quality variant
-                        if dcAux["Gene.refGene"] in gene_query_total : #collect variants of query genes and neighboring genes
-                            gene_name = dcAux["Gene.refGene"]
-                            exon = dcAux["Func.refGene"]
-                            mut_type = dcAux["ExonicFunc.refGene"]
-                            MAF = getHghestMAF(dcAux)
-                            # TODO Es guarda per despres quina informacio guardarem en GQX_info
-                            GQX_info = field[sample_index]
-                            genotype = dcAux["vcf_GT"]
-                            if genotype == '0/1' :
-                                germline_variant[variant] = ["{gene}\t{mutation}\t{maf}\t{exon}\t{GQX}".format(gene = gene_name, mutation = mut_type, maf = MAF, exon = exon, GQX = GQX_info)]
+                try :
+                    chr_input = dcAux["vcf_chrom"]
+                    if chr_input == chr_query:
+                        pos_query = dcAux["vcf_pos"]
+                        # variant format: chr-pos-ref-alt
+                        variant = '{chr}-{pos}-{ref}-{alt}'.format(chr = dcAux["vcf_chrom"], pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
+                        PASS_index = dcAux["vcf_filter"]
+                        gene_check = 0
+                        if PASS_index == 'PASS':# to collect high-quality variant
+                            if dcAux["Gene.refGene"] in gene_query_total : #collect variants of query genes and neighboring genes
+                                gene_name = dcAux["Gene.refGene"]
+                                exon = dcAux["Func.refGene"]
+                                mut_type = dcAux["ExonicFunc.refGene"]
+                                MAF = getHghestMAF(dcAux)
+                                # TODO Es guarda per despres quina informacio guardarem en GQX_info
+                                GQX_info = field[sample_index]
+                                genotype = dcAux["vcf_GT"]
+                                if genotype == '0/1' :
+                                    germline_variant[variant] = ["{gene}\t{mutation}\t{maf}\t{exon}\t{GQX}".format(gene = gene_name, mutation = mut_type, maf = MAF, exon = exon, GQX = GQX_info)]
+                except KeyError as e :
+                    print(e)
+                    print("ERROR: Key not found in dict. The keys found were: {}".format(dcAux.keys()))
 
     return germline_variant
 
