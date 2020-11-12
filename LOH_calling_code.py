@@ -191,7 +191,21 @@ def convert2dict(line, header) :
     return dc
 
 def getHghestMAF(vcf) :
-    return ""
+    print(vcf.keys())
+    keys = []
+    max = -1
+    for f in keys :
+        try :
+            aux = float(vcf[f])
+            if aux > max :
+                max = aux
+        except ValueError as e :
+            pass
+
+    if max = -1 :
+        max = "NA"
+
+    return max
 
 def readGermline(path, chr_query, gene_query_total) :
     print("INFO: Extracting information from germline file")
@@ -224,8 +238,8 @@ def readGermline(path, chr_query, gene_query_total) :
                                 exon = dcAux["Func.refGene"]
                                 mut_type = dcAux["ExonicFunc.refGene"]
                                 MAF = getHghestMAF(dcAux)
-                                # TODO Es guarda per despres quina informacio guardarem en GQX_info
-                                GQX_info = "field[sample_index]"
+                                # Store the information regarding the genotype (GT) and the ref/alt depth (AD)
+                                GQX_info = "{}:{}".format(dcAux["vcf_GT"], dcAux["vcf_AD"])
                                 genotype = dcAux["vcf_GT"]
                                 if genotype == '0/1' :
                                     germline_variant[variant] = ["{gene}\t{mutation}\t{maf}\t{exon}\t{GQX}".format(gene = gene_name, mutation = mut_type, maf = MAF, exon = exon, GQX = GQX_info)]
