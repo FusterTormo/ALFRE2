@@ -251,6 +251,34 @@ def readGermline(path, chr_query, gene_query_total) :
 
     return germline_variant
 
+def readSomatic(path, chr_query, germline_variant) :
+    """
+    # Variables filled after this loop #
+        * germline_variant dict format: { "chr-pos-ref-alt" : geneName\tmutation_type, MAF, exonic_mutation_type, 0/1}
+        * gene2variant dict format : { "gene_name" :  "chr-pos-ref-alt"} NOT USED
+    """
+    print("INFO: Extracting information from somatic file")
+    somatic_variant = {}
+    header = []
+    with open(path, "r") as fi :
+        ### mapping germline variants from normal sample to matched somatic variants from tumor sample
+        for line in fi :
+            if len(header) == 0 :
+                header = line.strip().split('\t')
+            else :
+                dcAux = convert2dict(line, header)
+                chr_input = dcAux["vcf_chrom"]
+                if chr_input == chr_query:
+                    # profile format : chr-pos-ref-alt
+                    profile = "{chr}-{pos}-{ref}-{alt}".format(chr = chr_index, pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
+                    # Remove the variants in the gens of interest that are in the germline file
+                    if profile in germline_variant.keys():
+                        somatic_GQX_info = "{}:{}".format(dcAux["vcf_GT"], dcAux["vcf_AD"])
+                        PASS_index = dcAux["vcf_filter"]
+                        somatic_variant[profile] = ["{pass}\t{gqx}".format(PASS_index, somatic_GQX_info)]
+
+    return somatic_variant
+
 def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
 
     #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
@@ -262,39 +290,10 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     ### Finding neighboring genes
     gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
 
+    germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
+    somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
 
 
-    """
-    # Variables filled after this loop #
-        * germline_variant dict format: { "chr-pos-ref-alt" : geneName\tmutation_type, MAF, exonic_mutation_type, 0/1}
-        * gene2variant dict format : { "gene_name" :  "chr-pos-ref-alt"} NOT USED
-    """
-    fsomatic = open('%s'%(somatic_sample), 'r')
-    somatic_variant = {}
-    ### mapping germline variants from normal sample to matched somatic variants from tumor sample
-    for line in fsomatic.xreadlines():
-        line = line.strip()
-        field = line.split('\t')
-        if '#' in line: # Get the indexes of the interesting columns
-            if '#CHROM' in line:
-                for i in range(len(field)):
-                    if field[i] == '#CHROM':
-                        chr_index = i
-                    elif field[i] == 'Sample_index':
-                        sample_index = i
-                    elif field[i] == 'FILTER':
-                        filter_index = i
-        else:  # Extract the variants information for the vcf body
-            chr_input = field[chr_index]
-            if chr_input!= chr_query:
-                continue
-            # profile format : chr-pos-ref-alt
-            profile = '%s-%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3], field[chr_index+4])
-            # Remove the variants in the gens of interest that are in the germline file
-            if profile in germline_variant.keys():
-                somatic_GQX_info = field[sample_index]
-                PASS_index = field[filter_index]
-                somatic_variant[profile] = ['%s\t%s'%(PASS_index, somatic_GQX_info)]
 
     ############################################################
     # Up to here we have:
@@ -404,9 +403,10 @@ gene_query = ['BRCA1']
 gene2locus = extractGenes()
 
 gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
-germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
-test2 = readGermline(germline_path, chr_query, gene_query_total)
-print(test2)
+somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
+germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
+germline_variant = readGermline(germline_path, chr_query, gene_query_total)
+somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
 
 
 #################################################
