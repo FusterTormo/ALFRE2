@@ -191,19 +191,22 @@ def convert2dict(line, header) :
     return dc
 
 def getHghestMAF(vcf) :
-    print(vcf.keys())
-    keys = []
+    keys = ["AF_fin", "AF_eas", "non_neuro_AF_popmax", "non_topmed_AF_popmax", "controls_AF_popmax", "AF_female", "AF_popmax", "AF_asj", "AF_ami", "AF_male", "AF_nfe", "AF_oth", "AF_amr",
+     "non_cancer_AF_popmax", "AF", "AF_afr", "AF_sas", "AF_raw"]
     max = -1
     for f in keys :
         try :
             aux = float(vcf[f])
             if aux > max :
                 max = aux
-        except ValueError as e :
+        except ValueError as e : # Control de errors obtained if there is no number in the allele frequency columns
             pass
 
-    if max = -1 :
+    if max == -1 :
         max = "NA"
+    else :
+        print(vcf)
+        sys.exit()
 
     return max
 
