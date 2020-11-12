@@ -170,7 +170,6 @@ def convert2dict(line, header) :
     it = 0
     for h in header :
         if h == "Otherinfo" :
-            continue
             dc["vcf_chrom"] = field[it]
             dc["vcf_pos"] = field[it+1]
             dc["vcf_id"] = field[it+2]
