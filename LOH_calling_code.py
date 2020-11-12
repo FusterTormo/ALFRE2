@@ -218,8 +218,11 @@ def readGermline(path, chr_query, gene_query_total) :
                         variant = '{chr}-{pos}-{ref}-{alt}'.format(chr = dcAux["vcf_chrom"], pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
                         PASS_index = dcAux["vcf_filter"]
                         gene_check = 0
+                        print("INFO: Found {}".format(variant))
                         if PASS_index == 'PASS':# to collect high-quality variant
+                            print("Good quality")
                             if dcAux["Gene.refGene"] in gene_query_total : #collect variants of query genes and neighboring genes
+                                print("Related gene")
                                 gene_name = dcAux["Gene.refGene"]
                                 exon = dcAux["Func.refGene"]
                                 mut_type = dcAux["ExonicFunc.refGene"]
@@ -228,6 +231,7 @@ def readGermline(path, chr_query, gene_query_total) :
                                 GQX_info = field[sample_index]
                                 genotype = dcAux["vcf_GT"]
                                 if genotype == '0/1' :
+                                    print("Heterozygous!!")
                                     germline_variant[variant] = ["{gene}\t{mutation}\t{maf}\t{exon}\t{GQX}".format(gene = gene_name, mutation = mut_type, maf = MAF, exon = exon, GQX = GQX_info)]
                 except KeyError as e :
                     print(e)
