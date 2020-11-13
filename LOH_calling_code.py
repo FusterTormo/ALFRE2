@@ -1,9 +1,6 @@
-import re,sys,os, glob
-from string import *
-import math, numpy, scipy, math
-from numpy import array
+import numpy
 from scipy import stats
-#import pvalue_combine
+import pvalue_combine
 
 ##############
 # This code is designed to detect LOH events of interested gene per one cancer patient using two different exome sequencing samples from normal and tumor.
@@ -21,6 +18,8 @@ from scipy import stats
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
 neighbor_genes = "input_files/UCSC-2014-10-30_hg19_refGene.txt"
 query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
+effect_size_upper = 0.7 ## cut-off of effect size can be changed.
+effect_size_lower = 0.3
 
 def extractPASS(chr_query) :
     """Get variants in gNOMAD/ExAC (or similar) that passed all the filters
@@ -277,7 +276,7 @@ def readSomatic(path, chr_query, germline_variant) :
     return somatic_variant
 
 def getInterestGenes(gene_query, germline_variant, somatic_variant) :
-    print("INFO: Getting the genes' information")
+    print("INFO: Getting the genes variant information")
     gene_info = {}
     for ids in gene_query: # gene_query is the list of genes passed as parameter to the function
         gene_info[ids] = [[]]
@@ -334,27 +333,9 @@ def getInterestGenes(gene_query, germline_variant, somatic_variant) :
                     #     gene_info[friend_query][0].append(variant_info)
     return gene_info
 
-def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
-
-    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
-    # ExAC_PASS = extractPASS(chr_query)
-
-    #### step 2: neighboring gene
-    gene2locus = extractGenes()
-
-    ### Finding neighboring genes
-    gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
-
-    germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
-    somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
-
-    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
-
-    #################################
-    effect_size_upper = 0.7 ## cut-off of effect size can be changed.
-    effect_size_lower = 0.3
+def calculateLOH(gene_info) :
     gene_LOH = {}
-    for gids in gene_info.keys():
+    for gids in gene_info.keys() :
         feature_list = gene_info[gids][0]
         gene_LOH[gids] = []
 
@@ -375,18 +356,34 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
             if TumorVAF >= effect_size_upper or TumorVAF <= effect_size_lower:#effect size threshold to define LOH
                 gene_LOH[gids].append(fisher_pvalue)
 
-    fout = open('./output/LOH_mapping_output.txt', 'w')
-    fout.write('Gene\tLOH_type\tNum_mapping_variant\n')
+    with open('./output/LOH_mapping_output.txt', 'w') as fout :
+        fout.write('Gene\tLOH_type\tNum_mapping_variant\n')
+        for gene_name in gene_info.keys():
+            pvalue_combination = pvalue_combine.combine_pvalues(gene_LOH[gene_name])[1]
+            if pvalue_combination <= 0.05:
+                fout.write('%s\t%s\t%s\n'%(gene_name, 'LOH', len(gene_LOH[gene_name])))
+            else:
+                fout.write('%s\t%s\t%s\n'%(gene_name, 'noLOH', len(gene_LOH[gene_name])))
 
-    for gene_name in gene_info.keys():
-        pvalue_combination = pvalue_combine.combine_pvalues(gene_LOH[gene_name])[1]
-        if pvalue_combination <= 0.05:
-            fout.write('%s\t%s\t%s\n'%(gene_name, 'LOH', len(gene_LOH[gene_name])))
-        else:
-            fout.write('%s\t%s\t%s\n'%(gene_name, 'noLOH', len(gene_LOH[gene_name])))
-    fout.close()
-    print(fout)
-    return 'LOH detection'
+
+def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+
+    #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
+    # ExAC_PASS = extractPASS(chr_query)
+
+    #### step 2: neighboring gene
+    gene2locus = extractGenes()
+
+    ### Finding neighboring genes
+    gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
+
+    germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
+    somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
+
+    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
+
+    calculateLOH(gene_info)
+
 
 # Unit tests for all the functions
 chr_query = 'chr17'
