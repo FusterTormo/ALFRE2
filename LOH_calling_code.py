@@ -398,7 +398,7 @@ germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e
 germline_variant = readGermline(germline_path, chr_query, gene_query_total)
 somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
 gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
-calculated(gene_info)
+calculateLOH(gene_info)
 
 #################################################
 
