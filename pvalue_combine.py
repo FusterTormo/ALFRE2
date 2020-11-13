@@ -67,7 +67,7 @@ def combine_pvalues(pvalues, method='fisher', weights=None):
 
     if method == 'fisher':
         Xsq = -2 * numpy.sum(numpy.log(pvalues))
-        pval = distributions.chi2.sf(Xsq, 2 * len(pvalues))
+        pval = scipy.stats.distributions.chi2.sf(Xsq, 2 * len(pvalues))
         return (Xsq, pval)
     elif method == 'stouffer':
         if weights is None:
@@ -79,9 +79,9 @@ def combine_pvalues(pvalues, method='fisher', weights=None):
         if weights.ndim != 1:
             raise ValueError("weights is not 1-D")
 
-        Zi = distributions.norm.isf(pvalues)
+        Zi = scipy.stats.distributions.norm.isf(pvalues)
         Z = numpy.dot(weights, Zi) / numpy.linalg.norm(weights)
-        pval = distributions.norm.sf(Z)
+        pval = scipy.stats.distributions.norm.sf(Z)
 
         return (Z, pval)
     else:
