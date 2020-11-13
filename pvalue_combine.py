@@ -1,17 +1,17 @@
-import re,sys,os, glob
-from string import *
-import math
+#import re,sys,os, glob
+#from string import *
+#import math
 import numpy
-import random
-from numpy import array
+#import random
+#from numpy import array
 import scipy
-from scipy import stats 
-import csv
-import pvalue_combine
-from sets import Set
-import math
+#from scipy import stats
+#import csv
+#import pvalue_combine
+#from sets import Set
+#import math
 
-from scipy.stats import *
+#from scipy.stats import *
 
 def combine_pvalues(pvalues, method='fisher', weights=None):
     """
@@ -91,5 +91,5 @@ def combine_pvalues(pvalues, method='fisher', weights=None):
 
 if __name__ == "__main__":
     pvalues = [0.1,0.01,0.02]
-    print combine_pvalues( pvalues, method='fisher' )
+    print(combine_pvalues(pvalues, method='fisher'))
     #print combine_pvalues( pvalues, method='stouffer' )
