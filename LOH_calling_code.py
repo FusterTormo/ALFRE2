@@ -20,6 +20,7 @@ neighbor_genes = "input_files/UCSC-2014-10-30_hg19_refGene.txt"
 query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 effect_size_upper = 0.7 ## cut-off of effect size can be changed.
 effect_size_lower = 0.3
+outputFile = 'LOH_mapping_output.txt'
 
 def extractPASS(chr_query) :
     """Get variants in gNOMAD/ExAC (or similar) that passed all the filters
@@ -356,7 +357,7 @@ def calculateLOH(gene_info) :
             if TumorVAF >= effect_size_upper or TumorVAF <= effect_size_lower:#effect size threshold to define LOH
                 gene_LOH[gids].append(fisher_pvalue)
 
-    with open('./output/LOH_mapping_output.txt', 'w') as fout :
+    with open(outputFile, 'w') as fout :
         fout.write('Gene\tLOH_type\tNum_mapping_variant\n')
         for gene_name in gene_info.keys():
             pvalue_combination = pvalue_combine.combine_pvalues(gene_LOH[gene_name])[1]
@@ -397,6 +398,7 @@ germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e
 germline_variant = readGermline(germline_path, chr_query, gene_query_total)
 somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
 gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
+calculated(gene_info)
 
 #################################################
 
