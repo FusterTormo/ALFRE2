@@ -289,7 +289,7 @@ def readSomatic(path, chr_query, germline_variant) :
 
     return somatic_variant
 
-def getInterestGenes(gene_query, germline_variant, somatic_variant, degree2gene) :
+def getInterestGenes(gene_query, germline_variant, somatic_variant, gene2locus, degree2gene) :
     print("INFO: Getting the genes variant information")
     gene_info = {}
     for ids in gene_query: # gene_query is the list of genes passed as parameter to the function
@@ -419,7 +419,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
     somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
 
-    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant, degree2gene)
+    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant, gene2locus, degree2gene)
 
     calculateLOH(gene_info)
 
