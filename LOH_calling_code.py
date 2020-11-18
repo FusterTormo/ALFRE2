@@ -384,19 +384,17 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
         gene_query : list, optional
             List of genes where to calculate the LOH. If nothing is passed, the LOH analysis will be done in the whole genome
     """
-
-
     #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
     # ExAC_PASS = extractPASS(chr_query)
+
+    #### step 2: neighboring gene
+    gene2locus = extractGenes()
 
     if gene_query != None :
         chr_query = findChromosomes(gene_query)
     else :
         chr_query = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21',
         'chr22', 'chrX', 'chrY']
-
-    #### step 2: neighboring gene
-    gene2locus = extractGenes()
 
     ### Finding neighboring genes
     gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
