@@ -1,3 +1,5 @@
+import sys
+
 import numpy
 from scipy import stats
 import pvalue_combine
@@ -17,7 +19,7 @@ import pvalue_combine
 # Constants
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
 neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
-query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
+query_KB = 5000*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 effect_size_upper = 0.7 ## cut-off of effect size can be changed.
 effect_size_lower = 0.3
 outputFile = 'LOH_mapping_output.txt'
@@ -287,7 +289,7 @@ def readSomatic(path, chr_query, germline_variant) :
 
     return somatic_variant
 
-def getInterestGenes(gene_query, germline_variant, somatic_variant) :
+def getInterestGenes(gene_query, germline_variant, somatic_variant, degree2gene) :
     print("INFO: Getting the genes variant information")
     gene_info = {}
     for ids in gene_query: # gene_query is the list of genes passed as parameter to the function
@@ -417,7 +419,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
     somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
 
-    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
+    gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant, degree2gene)
 
     calculateLOH(gene_info)
 
