@@ -366,11 +366,34 @@ def calculateLOH(gene_info) :
             else:
                 fout.write('%s\t%s\t%s\n'%(gene_name, 'noLOH', len(gene_LOH[gene_name])))
 
+def findChromosomes(geneList, gene2locus) :
+    chromList = []
+    for g in geneList :
+        print(gene2locus[g])
+    sys.exit()
 
-def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, gene_query = None):
+    """Calculate the LOH in a pair tumor/control annotated vcf
+
+    Parameters
+    ----------
+        germline_sample : str
+            Path for the annotated vcf file done in the germline/control sample
+        somatic_sample : str
+            Path for the annotated vcf file done in the somatic sample
+        gene_query : list, optional
+            List of genes where to calculate the LOH. If nothing is passed, the LOH analysis will be done in the whole genome
+    """
+
 
     #### step 1: collecting ExAC PASS variants in format "chr_number-position-reference-alterated"
     # ExAC_PASS = extractPASS(chr_query)
+
+    if gene_query != None :
+        chr_query = findChromosomes(gene_query)
+    else :
+        chr_query = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21',
+        'chr22', 'chrX', 'chrY']
 
     #### step 2: neighboring gene
     gene2locus = extractGenes()
@@ -385,25 +408,36 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
     calculateLOH(gene_info)
 
-
+"""
+Main program
+"""
 # Unit tests for all the functions
 chr_query = 'chr17'
 gene_query = ['BRCA1']
-# test = extractPASS('17')
-gene2locus = extractGenes()
 
-gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
 somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
-germline_variant = readGermline(germline_path, chr_query, gene_query_total)
-somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
-gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
-calculateLOH(gene_info)
+germline2somatic_variant_mapping_LOHcalling(germline_path, somatic_path, gene_query)
 
-#################################################
+# Previous tests
+# gene2locus = extractGenes()
+#
+# gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
+# germline_variant = readGermline(germline_path, chr_query, gene_query_total)
+# somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
+# gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
+# calculateLOH(gene_info)
 
-# TODO uncomment this to do the tests
-# First dummy example
+#####################################################
+# TODO: Possibility to install in other computers
+# * Check the needed files are available (ExAC.r0.3.sites.vep.vcf and UCSC-2014-10-30_hg19_refGene.txt)
+# * Add information to run the program
+# * Add information regarding the obtained output
+# * How to annotate the vcf files to run ALFRED
+# * Possible executions: running for a particular gene, or for the whole genome
+#####################################################
+
+# Previous example
 
 # germline_sample = 'input_files/normal_ex2.vcf'
 # somatic_sample = 'input_files/tumor_ex2.vcf'
