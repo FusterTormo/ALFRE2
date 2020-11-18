@@ -16,7 +16,7 @@ import pvalue_combine
 
 # Constants
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
-neighbor_genes = "input_files/UCSC-2014-10-30_hg19_refGene.txt"
+neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
 query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 effect_size_upper = 0.7 ## cut-off of effect size can be changed.
 effect_size_lower = 0.3
@@ -67,6 +67,16 @@ def extractPASS(chr_query) :
 def extractGenes() :
     """Get the length, start, end and chromosome from all the genes
 
+    IMPORTANT: This function reads the file UCSC_hg38_refGene.txt downloaded using UCSC database by executing
+
+    How to get this file:
+        * Download from the github page : https://github.com/fustertormo/ALFRE2
+        * Download from UCSC website : Go to table browser and follow the instructions
+            *
+            *
+        * From the UCSC MySQL database -> mysql --user=genome --host=genome-mysql.soe.ucsc.edu -A -P 3306 -sN -D hg38 -e "SELECT chrom, txStart, txEnd, name2 FROM refGene"
+
+
     Returns
     -------
         dict
@@ -79,11 +89,11 @@ def extractGenes() :
         for line in fi :
             line = line.strip()
             field = line.split('\t')
-            gene_name = field[12]
-            start_pos = int(field[4])
-            end_pos = int(field[5])
+            gene_name = field[3]
+            start_pos = int(field[1])
+            end_pos = int(field[2])
             length = end_pos - start_pos
-            chr_info = field[2].replace("chr", "")
+            chr_info = field[0]
 
             if gene_name not in gene2locus.keys():
                 gene2locus[gene_name] = [[],[],[],[]]
@@ -369,7 +379,7 @@ def calculateLOH(gene_info) :
 def findChromosomes(geneList, gene2locus) :
     chromList = []
     for g in geneList :
-        print(gene2locus[g])
+        print(gene2locus[g][3][0])
     sys.exit()
 
 def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, gene_query = None):
@@ -391,7 +401,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     gene2locus = extractGenes()
 
     if gene_query != None :
-        chr_query = findChromosomes(gene_query)
+        chr_query = findChromosomes(gene_query, gene2locus)
     else :
         chr_query = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21',
         'chr22', 'chrX', 'chrY']
