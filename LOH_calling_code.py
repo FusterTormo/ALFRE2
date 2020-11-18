@@ -339,6 +339,8 @@ def getInterestGenes(gene_query, germline_variant, somatic_variant, gene2locus, 
                     center_pos_query = (start_pos_query + end_pos_query)/2.0
                     possible_start = center_pos_query - query_KB
                     possible_end = center_pos_query + query_KB
+                    position = int(variant_info.split("-")[1])
+
                     ###########################
                     if position >= possible_start and position <= possible_end:
                         gene_info[friend_query][0].append(variant_info)
@@ -433,6 +435,10 @@ somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a
 germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 
 germline2somatic_variant_mapping_LOHcalling(germline_path, somatic_path, gene_query)
+
+# if len(sys.argv) == 3 :
+#     germline_path = sys.argv[1]
+#     somatic_pat
 
 # Previous tests
 # gene2locus = extractGenes()
