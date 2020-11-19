@@ -18,12 +18,12 @@ import pvalue_combine
 #############
 
 
-def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample, chr_query, gene_query):
+def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample, chr_query, gene_query):
 
     #### step 1: collecting ExAC PASS variants
     # ExAC_PASS = {}
     # ExAC_PASS[chr_query] = []
-    # fexac = open('./input_folder/ExAC.r0.3.sites.vep.vcf','r') ## download from : http://exac.broadinstitute.org/downloads
+    # fexac = open('./input_files/ExAC.r0.3.sites.vep.vcf','r') ## download from : http://exac.broadinstitute.org/downloads
     # for line in fexac.xreadlines():
     #     line = line.strip()
     #     field = line.split('\t')
@@ -45,7 +45,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
     #### step 2: neighboring gene
     query_KB = 50*1000#to define neighboring variants. The definition of neighboring variants can be changed.
-    flocus = open('./input_folder/UCSC-2014-10-30_hg19_refGene.txt','r')
+    flocus = open('./input_files/UCSC-2014-10-30_hg19_refGene.txt','r')
     gene2locus = {}
     for line in flocus.xreadlines():
         line = line.strip()
@@ -119,8 +119,8 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     print(germline_sample)
     print(somatic_sample)
 
-    fgermline = open('./input_folder/%s'%(germline_sample),'r')
-    fsomatic = open('./input_folder/%s'%(somatic_sample), 'r')
+    fgermline = open('./input_files/%s'%(germline_sample),'r')
+    fsomatic = open('./input_files/%s'%(somatic_sample), 'r')
 
     germline_variant = {}
     gene2variant = {}
@@ -304,9 +304,9 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
 #################################################
 
-germline_sample = './input_folder/TCGA_GermlineSample_example.txt'
-somatic_sample = './input_folder/TCGA_TumorSample_example.txt'
+germline_sample = './input_files/TCGA_GermlineSample_example.txt'
+somatic_sample = './input_files/TCGA_TumorSample_example.txt'
 gene_query = ['BRCA1']
 chr_query = '17'
 
-print(germline2somatic_variant_mapping (germline_sample, somatic_sample, chr_query, gene_query))
+print(germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample, chr_query, gene_query))
