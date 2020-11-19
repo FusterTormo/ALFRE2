@@ -387,7 +387,9 @@ def findChromosomes(geneList, gene2locus) :
     """
     chromList = []
     for g in geneList :
-        chromList.append(gene2locus[g][3][0])
+        auxChrom = gene2locus[g][3][0]
+        if auxChrom not in chromList :
+            chromList.append(auxChrom)
 
     return chromList
 
@@ -428,27 +430,7 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 """
 Main program
 """
-# Unit tests for all the functions
-gene_query = ["BRCA1", "BRCA2"]
-
-somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
-germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
-
-germline2somatic_variant_mapping_LOHcalling(germline_path, somatic_path, gene_query)
-
-# if len(sys.argv) == 3 :
-#     germline_path = sys.argv[1]
-#     somatic_pat
-
-# Previous tests
-# gene2locus = extractGenes()
-#
-# gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
-# germline_variant = readGermline(germline_path, chr_query, gene_query_total)
-# somatic_variant = readSomatic(somatic_path, chr_query, germline_variant)
-# gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant)
-# calculateLOH(gene_info)
-
+"""
 #####################################################
 # TODO: Possibility to install in other computers
 # * Check the needed files are available (ExAC.r0.3.sites.vep.vcf and UCSC-2014-10-30_hg19_refGene.txt)
@@ -457,12 +439,21 @@ germline2somatic_variant_mapping_LOHcalling(germline_path, somatic_path, gene_qu
 # * How to annotate the vcf files to run ALFRED
 # * Possible executions: running for a particular gene, or for the whole genome
 #####################################################
+"""
+if len(sys.argv) == 3 :
+    germline_path = sys.argv[1]
+    somatic_path = sys.argv[2]
+elif len(sys.argv) == 4 :
+    germline_path = sys.argv[1]
+    somatic_path = sys.argv[2]
+    gene_query = sys.argv[3].split(",")
+    print(gene_query)
+else :
+    print("USAGE: python3 LOH_calling.py gemline_annotated_vcf somatic_annotated_vcf [genes_of_interest]")
+    # Unit tests for all the functions
+    gene_query = ["BRCA1", "BRCA2"]
 
-# Previous example
+    somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
+    germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 
-# germline_sample = 'input_files/normal_ex2.vcf'
-# somatic_sample = 'input_files/tumor_ex2.vcf'
-# gene_query = ['BRCA1']
-# chr_query = '17'
-#
-# print germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample, chr_query, gene_query)
+    germline2somatic_variant_mapping_LOHcalling(germline_path, somatic_path, gene_query)
