@@ -67,6 +67,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 gene2locus[gene_name][1].append(start_pos)
                 gene2locus[gene_name][2].append(end_pos)
 
+    print(gene2locus)
+    sys.exit()
     ### for finding neighboring genes
     gene2degree = {}
     degree2gene = {}
@@ -124,20 +126,29 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
     somatic_variant = {}
     ### collecting germline variants (all possible PASS variants)
     with open('./input_files/%s'%(germline_sample),'r') as fgermline :
+        header = False
         for line in fgermline:
             line = line.strip()
             field = line.split('\t')
-            if '#' in line:
-                if '#CHROM' in line:
-                    for i in range(len(field)):
-                        if field[i] == 'FILTER':
-                            filter_index = i
-                        elif field[i] == 'INFO':
-                            info_index = i
-                        elif field[i] == 'Sample_index':
-                            sample_index = i
-                        elif field[i] == '#CHROM':
-                            chr_index = i
+            if not header:
+                chr_index = 0
+                pos_index = 1
+                ref_index = 2
+                alt_index = 3
+                gene_refGene = -1
+                func_refGene = -1
+                exonicFunc_refGene = -1
+                maf = -1
+                # if '#CHROM' in line:
+                #     for i in range(len(field)):
+                #         if field[i] == 'FILTER':
+                #             filter_index = i
+                #         elif field[i] == 'INFO':
+                #             info_index = i
+                #         elif field[i] == 'Sample_index':
+                #             sample_index = i
+                #         elif field[i] == '#CHROM':
+                #             chr_index = i
             else:
                 chr_input = field[chr_index]
                 if chr_input!= chr_query:
@@ -303,8 +314,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
 
 #################################################
 
-germline_sample = './input_files/TCGA_GermlineSample_example.txt'
-somatic_sample = './input_files/TCGA_TumorSample_example.txt'
+somatic_sample = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
+germline_sample = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 gene_query = ['BRCA1']
 chr_query = '17'
 
