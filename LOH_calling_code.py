@@ -18,7 +18,8 @@ import pvalue_combine
 
 # Constants
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
-neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
+# neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
+neighbor_genes = "'./input_files/UCSC-2014-10-30_hg19_refGene.txt'"
 query_KB = 5000*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 effect_size_upper = 0.7 ## cut-off of effect size can be changed.
 effect_size_lower = 0.3
@@ -410,7 +411,8 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
     #### step 2: neighboring gene
     gene2locus = extractGenes()
-
+    print(len(gene2locus))
+    sys.exit()
     if gene_query != None :
         chr_query = findChromosomes(gene_query, gene2locus)
     else :
