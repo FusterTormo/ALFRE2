@@ -67,7 +67,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 gene2locus[gene_name][1].append(start_pos)
                 gene2locus[gene_name][2].append(end_pos)
 
-    print(gene2locus)
+    print(len(gene2locus))
+    print(len(gene2locus.keys()))
     sys.exit()
     ### for finding neighboring genes
     gene2degree = {}
