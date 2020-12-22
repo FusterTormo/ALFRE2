@@ -112,8 +112,9 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                     degree2gene[gene_cand].append(gids)
                 else:
                     degree2gene[gene_cand] = [gids]
-
-    print(gene2degree)
+    print("gene2degree: {}".format(gene2degree))
+    print("degree2gene: {}".format(degree2gene))
+    print("gene_query_total: {}".format(gene_query_total))
     sys.exit()
     print(gene_query, 'gene_input_query')
     print(gene_query_total, 'gene_neighboring_query')

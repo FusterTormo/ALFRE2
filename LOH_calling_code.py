@@ -20,7 +20,7 @@ import pvalue_combine
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
 neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
 
-query_KB = 5000*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
+query_KB = 50*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 effect_size_upper = 0.7 ## cut-off of effect size can be changed.
 effect_size_lower = 0.3
 outputFile = 'LOH_mapping_output.txt'
@@ -421,7 +421,9 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
     ### Finding neighboring genes
     gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
-    print(gene2degree)
+    print("gene2degree: {}".format(gene2degree))
+    print("degree2gene: {}".format(degree2gene))
+    print("gene_query_total: {}".format(gene_query_total))
     sys.exit()
     germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
     somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
