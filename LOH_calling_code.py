@@ -18,8 +18,8 @@ import pvalue_combine
 
 # Constants
 exac_input = "input_files/ExAC.r0.3.sites.vep.vcf" ## download from : http://exac.broadinstitute.org/downloads
-# neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
-neighbor_genes = "'./input_files/UCSC-2014-10-30_hg19_refGene.txt'"
+neighbor_genes = "input_files/UCSC_hg38_refGene.txt"
+
 query_KB = 5000*1000 # to define neighboring variants. The definition of neighboring variants can be changed.
 effect_size_upper = 0.7 ## cut-off of effect size can be changed.
 effect_size_lower = 0.3
@@ -93,11 +93,11 @@ def extractGenes() :
         for line in fi :
             line = line.strip()
             field = line.split('\t')
-            gene_name = field[12]
-            start_pos = int(field[4])
-            end_pos = int(field[5])
+            gene_name = field[3]
+            start_pos = int(field[1])
+            end_pos = int(field[2])
             length = end_pos - start_pos
-            chr_info = field[2]
+            chr_info = field[0]
 
             if gene_name not in gene2locus.keys():
                 gene2locus[gene_name] = [[],[],[],[]]
@@ -411,8 +411,8 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
     #### step 2: neighboring gene
     gene2locus = extractGenes()
-    print(len(gene2locus))
-    sys.exit()
+    print("gene2locus length: {}".format(len(gene2locus)))
+
     if gene_query != None :
         chr_query = findChromosomes(gene_query, gene2locus)
     else :
@@ -421,7 +421,8 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
 
     ### Finding neighboring genes
     gene2degree, degree2gene, gene_query_total = getNeighborGenes(gene_query, gene2locus)
-
+    print(gene2degree)
+    sys.exit()
     germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
     somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
 
@@ -453,7 +454,7 @@ elif len(sys.argv) == 4 :
 else :
     print("USAGE: python3 LOH_calling.py gemline_annotated_vcf somatic_annotated_vcf [genes_of_interest]")
     # Unit tests for all the functions
-    gene_query = ["BRCA1", "BRCA2"]
+    gene_query = ['BRCA1']
 
     somatic_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
     germline_path = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"

@@ -46,15 +46,15 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
     #### step 2: neighboring gene
     query_KB = 50*1000#to define neighboring variants. The definition of neighboring variants can be changed.
     gene2locus = {}
-    with open('./input_files/UCSC-2014-10-30_hg19_refGene.txt','r') as flocus :
+    with open("input_files/UCSC_hg38_refGene.txt",'r') as flocus :
         for line in flocus :
             line = line.strip()
             field = line.split('\t')
-            gene_name = field[12]
-            start_pos = int(field[4])
-            end_pos = int(field[5])
+            gene_name = field[3]
+            start_pos = int(field[1])
+            end_pos = int(field[2])
             length = end_pos - start_pos
-            chr_info = field[2]
+            chr_info = field[0]
 
             if gene_name not in gene2locus.keys():
                 gene2locus[gene_name] = [[],[],[],[]]
@@ -67,9 +67,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 gene2locus[gene_name][1].append(start_pos)
                 gene2locus[gene_name][2].append(end_pos)
 
-    print(len(gene2locus))
-    print(len(gene2locus.keys()))
-    sys.exit()
+    print("gene2locus length: {}".format(len(gene2locus)))
+
     ### for finding neighboring genes
     gene2degree = {}
     degree2gene = {}
@@ -114,6 +113,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 else:
                     degree2gene[gene_cand] = [gids]
 
+    print(gene2degree)
+    sys.exit()
     print(gene_query, 'gene_input_query')
     print(gene_query_total, 'gene_neighboring_query')
 
