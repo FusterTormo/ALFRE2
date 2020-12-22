@@ -93,11 +93,11 @@ def extractGenes() :
         for line in fi :
             line = line.strip()
             field = line.split('\t')
-            gene_name = field[3]
-            start_pos = int(field[1])
-            end_pos = int(field[2])
+            gene_name = field[12]
+            start_pos = int(field[4])
+            end_pos = int(field[5])
             length = end_pos - start_pos
-            chr_info = field[0]
+            chr_info = field[2]
 
             if gene_name not in gene2locus.keys():
                 gene2locus[gene_name] = [[],[],[],[]]
