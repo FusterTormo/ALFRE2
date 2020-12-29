@@ -198,24 +198,23 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 GQX_info = field[sample_index]
                 genotype = GQX_info.split(':')[0]
 
-                # if PASS_index != 'PASS':# to collect high-quality variant
-                #     continue
+                # Filters
+
+                if PASS_index != 'PASS':# to collect high-quality variant
+                    continue
 
                 if gene_check == 0:
                     continue
                 # elif variant not in ExAC_PASS[chr_input]:#to collect ExAC_PASS variants
                 #     continue
 
-                # if genotype == '1/1':#to remove homozygous variant
-                #     continue
+                if genotype == '1/1':#to remove homozygous variant
+                    continue
 
                 for gene_name in gene_query_list:
-                    gene2variant[gene_name] = [variant]
-                    varaux = '%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)
-                    print(varaux)
+                    # gene2variant[gene_name] = [variant]
                     germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
-    print(gene2variant)
     print(germline_variant)
     sys.exit()
     ### mapping germline variants from normal sample to matched somatic variants from tumor sample
