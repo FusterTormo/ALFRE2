@@ -165,8 +165,6 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 PASS_index = field[filter_index]
 
                 gene_check = 0
-                # if PASS_index != 'PASS':# to collect high-quality variant
-                #     continue
 
                 gene_query_list = field[gene_refGene].split(',')
                 for gids in gene_query_list:
@@ -196,18 +194,25 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 #     elif 'exac02' == gids_info:#ExAC MAF information
                 #         MAF = gene_info.split('=')[1]
 
+
+                GQX_info = field[sample_index]
+                genotype = GQX_info.split(':')[0]
+
+                # if PASS_index != 'PASS':# to collect high-quality variant
+                #     continue
+
                 if gene_check == 0:
                     continue
                 # elif variant not in ExAC_PASS[chr_input]:#to collect ExAC_PASS variants
                 #     continue
 
-                GQX_info = field[sample_index]
-                genotype = GQX_info.split(':')[0]
-                if genotype == '1/1':#to remove homozygous variant
-                    continue
+                # if genotype == '1/1':#to remove homozygous variant
+                #     continue
+
                 for gene_name in gene_query_list:
                     gene2variant[gene_name] = [variant]
-                    print(variant)
+                    varaux = '%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)
+                    print(varaux)
                     germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
     print(gene2variant)
