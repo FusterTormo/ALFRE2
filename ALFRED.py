@@ -155,14 +155,13 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 #         elif field[i] == '#CHROM':
                 #             chr_index = i
             else:
-                print("DUMMY test")
                 chr_input = field[chr_index]
-                if chr_input!= chr_query:
+                if chr_input != chr_query:
                     continue
 
-                pos_query = field[pos_index]
+                # pos_query = field[pos_index]
                 variant = '%s-%s-%s-%s'%(field[chr_index], field[pos_index], field[ref_index], field[alt_index])
-                variant_index = '%s-%s-%s'%(field[chr_index], field[pos_index], field[ref_index])
+                # variant_index = '%s-%s-%s'%(field[chr_index], field[pos_index], field[ref_index])
                 PASS_index = field[filter_index]
 
                 gene_check = 0
@@ -208,6 +207,7 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                     continue
                 for gene_name in gene_query_list:
                     gene2variant[gene_name] = [variant]
+                    print(variant)
                     germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
     print(gene2variant)
@@ -335,6 +335,6 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
 somatic_sample = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/90cf56c6-6a6e-4e2c-a704-90952afeef25/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 germline_sample = "/g/strcombio/fsupek_cancer2/TCGA_bam/OV/TCGA-04-1332/21fc93b7-e01a-4942-ba6b-c9a5028c4e60/strelkaGerm/results/variants/strelka.hg38_multianno.txt"
 gene_query = ['BRCA1']
-chr_query = '17'
+chr_query = 'chr17'
 
 print(germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample, chr_query, gene_query))
