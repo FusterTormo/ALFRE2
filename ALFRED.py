@@ -215,32 +215,41 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                     # gene2variant[gene_name] = [variant]
                     germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
-    print(germline_variant)
-    sys.exit()
+    print("germline_variant: {}".format(germline_variant))
     ### mapping germline variants from normal sample to matched somatic variants from tumor sample
     with open('%s'%(somatic_sample), 'r') as fsomatic :
+        header = False
         for line in fsomatic :
             line = line.strip()
             field = line.split('\t')
-            if '#' in line:
-                if '#CHROM' in line:
-                    for i in range(len(field)):
-                        if field[i] == '#CHROM':
-                            chr_index = i
-                        elif field[i] == 'Sample_index':
-                            sample_index = i
-                        elif field[i] == 'FILTER':
-                            filter_index = i
+            if not header :
+                chr_index = 0
+                pos_index = 1
+                ref_index = 3
+                alt_index = 4
+                filter_index = 46
+                sample_index = 49
+                header = True
+            # if '#' in line:
+            #     if '#CHROM' in line:
+            #         for i in range(len(field)):
+            #             if field[i] == '#CHROM':
+            #                 chr_index = i
+            #             elif field[i] == 'Sample_index':
+            #                 sample_index = i
+            #             elif field[i] == 'FILTER':
+            #                 filter_index = i
             else:
                 chr_input = field[chr_index]
                 if chr_input!= chr_query:
                     continue
-                profile = '%s-%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3], field[chr_index+4])
+                profile = '%s-%s-%s-%s'%(field[chr_index], field[pos_index], field[ref_index], field[alt_index])
                 if profile in germline_variant.keys():
                     somatic_GQX_info = field[sample_index]
                     PASS_index = field[filter_index]
                     somatic_variant[profile] = ['%s\t%s'%(PASS_index, somatic_GQX_info)]
-
+    print(somatic_variant)
+    sys.exit()
     gene_info = {}
     for ids in gene_query:
         gene_info[ids] = [[]]

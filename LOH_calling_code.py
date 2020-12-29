@@ -243,6 +243,7 @@ def readGermline(path, chr_query, gene_query_total) :
                     if chr_input in chr_query:
                         pos_query = dcAux["vcf_pos"]
                         # variant format: chr-pos-ref-alt
+                        ## TODO: Canviar les claus de crom, pos, ref i alt per les que apareixen en el ANNOVAR
                         variant = '{chr}-{pos}-{ref}-{alt}'.format(chr = dcAux["vcf_chrom"], pos = dcAux["vcf_pos"], ref = dcAux["vcf_ref"], alt = dcAux["vcf_alt"])
                         PASS_index = dcAux["vcf_filter"]
                         gene_check = 0
@@ -425,9 +426,10 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     print("degree2gene: {}".format(degree2gene))
     print("gene_query_total: {}".format(gene_query_total))
     germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
-    print(germline_variant)
-    sys.exit()
+    print("germline_variant: {}".format(germline_variant))
     somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
+    print(somatic_variant)
+    sys.exit()
     gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant, gene2locus, degree2gene)
 
     calculateLOH(gene_info)
