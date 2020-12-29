@@ -127,7 +127,7 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
     gene2variant = {}
     somatic_variant = {}
     ### collecting germline variants (all possible PASS variants)
-    with open('./input_files/%s'%(germline_sample),'r') as fgermline :
+    with open('%s'%(germline_sample),'r') as fgermline :
         header = False
         for line in fgermline:
             line = line.strip()
@@ -155,6 +155,7 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 #         elif field[i] == '#CHROM':
                 #             chr_index = i
             else:
+                print("DUMMY test")
                 chr_input = field[chr_index]
                 if chr_input!= chr_query:
                     continue
@@ -165,8 +166,7 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 PASS_index = field[filter_index]
 
                 gene_check = 0
-                if PASS_index!= 'PASS':# to collect high-quality variant
-                    print(PASS_index)
+                if PASS_index != 'PASS':# to collect high-quality variant
                     continue
 
                 gene_query_list = field[gene_refGene].split(',')
@@ -214,7 +214,7 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
     print(germline_variant)
     sys.exit()
     ### mapping germline variants from normal sample to matched somatic variants from tumor sample
-    with open('./input_files/%s'%(somatic_sample), 'r') as fsomatic :
+    with open('%s'%(somatic_sample), 'r') as fsomatic :
         for line in fsomatic :
             line = line.strip()
             field = line.split('\t')
