@@ -135,8 +135,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
             if not header:
                 chr_index = 0
                 pos_index = 1
-                ref_index = 2
-                alt_index = 3
+                ref_index = 3
+                alt_index = 4
                 filter_index = 46
                 gene_refGene = 6
                 func_refGene = 5
