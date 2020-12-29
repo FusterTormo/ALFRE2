@@ -165,8 +165,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 PASS_index = field[filter_index]
 
                 gene_check = 0
-                if PASS_index != 'PASS':# to collect high-quality variant
-                    continue
+                # if PASS_index != 'PASS':# to collect high-quality variant
+                #     continue
 
                 gene_query_list = field[gene_refGene].split(',')
                 for gids in gene_query_list:
