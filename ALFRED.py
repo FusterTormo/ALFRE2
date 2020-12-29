@@ -115,7 +115,6 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
     print("gene2degree: {}".format(gene2degree))
     print("degree2gene: {}".format(degree2gene))
     print("gene_query_total: {}".format(gene_query_total))
-    sys.exit()
     print(gene_query, 'gene_input_query')
     print(gene_query_total, 'gene_neighboring_query')
 
@@ -138,10 +137,13 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 pos_index = 1
                 ref_index = 2
                 alt_index = 3
-                gene_refGene = -1
-                func_refGene = -1
-                exonicFunc_refGene = -1
-                maf = -1
+                filter_index = 46
+                gene_refGene = 6
+                func_refGene = 5
+                exonicFunc_refGene = 8
+                maf_index = 11
+                sample_index = 49
+                header = True
                 # if '#CHROM' in line:
                 #     for i in range(len(field)):
                 #         if field[i] == 'FILTER':
@@ -157,33 +159,43 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                 if chr_input!= chr_query:
                     continue
 
-                pos_query = field[chr_index+1]
-                variant = '%s-%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3], field[chr_index+4])
-                variant_index = '%s-%s-%s'%(field[chr_index], field[chr_index+1], field[chr_index+3])
+                pos_query = field[pos_index]
+                variant = '%s-%s-%s-%s'%(field[chr_index], field[pos_index], field[ref_index], field[alt_index])
+                variant_index = '%s-%s-%s'%(field[chr_index], field[pos_index], field[ref_index])
                 PASS_index = field[filter_index]
 
                 gene_check = 0
                 if PASS_index!= 'PASS':# to collect high-quality variant
+                    print(PASS_index)
                     continue
-                gene_annovar = field[info_index].split(';')#Annovar information
 
-                for gindex in range(len(gene_annovar)):
-                    gene_info = gene_annovar[gindex]
-                    gids_info = gene_info.split('=')[0]
-                    if 'Gene.refGene' == gids_info:
-                        gene_query_list = gene_info.split('=')[1].split(',')
-                        for gids in gene_query_list:
-                            if gids in gene_query_total:#collect variants of query genes and neighboring genes
-                                gene_check = 1
+                gene_query_list = field[gene_refGene].split(',')
+                for gids in gene_query_list:
+                    if gids in gene_query_total : #collect variants of query genes and neighboring genes
+                        gene_check = 1
 
-                    elif 'Func.refGene' == gids_info:
-                        exon = gene_info.split('=')[1]
-
-                    elif 'ExonicFunc.refGene' == gids_info:
-                        mut_type = gene_info.split('=')[1]
-
-                    elif 'exac02' == gids_info:#ExAC MAF information
-                        MAF = gene_info.split('=')[1]
+                exon = field[func_refGene]
+                mut_type = field[exonicFunc_refGene]
+                MAF = field[maf_index]
+                # gene_annovar = field[info_index].split(';')#Annovar information
+                #
+                # for gindex in range(len(gene_annovar)):
+                #     gene_info = gene_annovar[gindex]
+                #     gids_info = gene_info.split('=')[0]
+                #     if 'Gene.refGene' == gids_info:
+                #         gene_query_list = gene_info.split('=')[1].split(',')
+                #         for gids in gene_query_list:
+                #             if gids in gene_query_total:#collect variants of query genes and neighboring genes
+                #                 gene_check = 1
+                #
+                #     elif 'Func.refGene' == gids_info:
+                #         exon = gene_info.split('=')[1]
+                #
+                #     elif 'ExonicFunc.refGene' == gids_info:
+                #         mut_type = gene_info.split('=')[1]
+                #
+                #     elif 'exac02' == gids_info:#ExAC MAF information
+                #         MAF = gene_info.split('=')[1]
 
                 if gene_check == 0:
                     continue
@@ -198,6 +210,9 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                     gene2variant[gene_name] = [variant]
                     germline_variant[variant] = ['%s\t%s\t%s\t%s\t%s'%(gene_name, mut_type, MAF, exon, GQX_info)]
 
+    print(gene2variant)
+    print(germline_variant)
+    sys.exit()
     ### mapping germline variants from normal sample to matched somatic variants from tumor sample
     with open('./input_files/%s'%(somatic_sample), 'r') as fsomatic :
         for line in fsomatic :
