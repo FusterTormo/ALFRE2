@@ -248,8 +248,7 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                     somatic_GQX_info = field[sample_index]
                     PASS_index = field[filter_index]
                     somatic_variant[profile] = ['%s\t%s'%(PASS_index, somatic_GQX_info)]
-    print(somatic_variant)
-    sys.exit()
+    print("somatic_variant: {}".format(somatic_variant))
     gene_info = {}
     for ids in gene_query:
         gene_info[ids] = [[]]
@@ -305,6 +304,8 @@ def germline2somatic_variant_mapping_LOHcalling(germline_sample, somatic_sample,
                     elif position <= possible_end and position >= possible_start:
                         gene_info[friend_query][0].append(variant_info)
 
+    print(gene_info)
+    sys.exit()
     #################################
     effect_size_upper = 0.7 ## cut-off of effect size can be changed.
     effect_size_lower = 0.3

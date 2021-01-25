@@ -428,9 +428,10 @@ def germline2somatic_variant_mapping_LOHcalling (germline_sample, somatic_sample
     germline_variant = readGermline(germline_sample, chr_query, gene_query_total)
     print("germline_variant: {}".format(germline_variant))
     somatic_variant = readSomatic(somatic_sample, chr_query, germline_variant)
-    print(somatic_variant)
-    sys.exit()
+    print("somatic_variant: {}".format(somatic_variant))
     gene_info = getInterestGenes(gene_query, germline_variant, somatic_variant, gene2locus, degree2gene)
+    print(gene_info)
+    sys.exit()
 
     calculateLOH(gene_info)
 
